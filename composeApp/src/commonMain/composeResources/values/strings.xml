@@ -1,0 +1,11 @@
+<resources>
+    <string name="home_title">Home</string>
+    <string name="home_movie_list_button">Movie List</string>
+    <string name="movie_list_title">Movie List</string>
+    <string name="movie_list_search_label">Search</string>
+    <string name="movie_list_fetch_failure">Movies fetch failed!</string>
+    <string name="movie_detail_fetch_failure">Movie fetch failed!</string>
+    <string name="retry_button">Retry</string>
+    <string name="back_icon_content_description">Back</string>
+    <string name="search_icon_content_description">Search</string>
+</resources>
