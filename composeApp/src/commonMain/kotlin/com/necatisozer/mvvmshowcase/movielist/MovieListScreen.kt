@@ -25,6 +25,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,8 +40,11 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.necatisozer.mvvmshowcase.data.Movie
 import com.necatisozer.mvvmshowcase.data.UiState
+import com.necatisozer.mvvmshowcase.data.map
 import com.necatisozer.mvvmshowcase.icon.ArrowBack
 import com.necatisozer.mvvmshowcase.icon.Search
+import kotlinx.coroutines.delay
+import kotlinx.serialization.json.Json
 import mvvmshowcase.composeapp.generated.resources.Res
 import mvvmshowcase.composeapp.generated.resources.back_icon_content_description
 import mvvmshowcase.composeapp.generated.resources.movie_list_fetch_failure
@@ -44,17 +53,44 @@ import mvvmshowcase.composeapp.generated.resources.movie_list_title
 import mvvmshowcase.composeapp.generated.resources.retry_button
 import mvvmshowcase.composeapp.generated.resources.search_icon_content_description
 import org.jetbrains.compose.resources.stringResource
+import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieListScreen(
-  uiState: MovieListUIState,
   onBackClick: () -> Unit,
-  onSearchQueryChange: (query: String) -> Unit,
   onMovieClick: (movieId: String) -> Unit,
-  onRetryClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  var searchQuery by rememberSaveable { mutableStateOf("") }
+
+  var reproducer by remember { mutableStateOf(0) }
+
+  val movies: UiState<List<Movie>> by
+    produceState<UiState<List<Movie>>>(initialValue = UiState.Loading, reproducer) {
+      value = UiState.Loading
+      delay(1.seconds)
+      if (Random.nextBoolean()) {
+        value = UiState.Failure(RuntimeException("Network error"))
+        return@produceState
+      }
+      val jsonString = Res.readBytes("files/movies.json").decodeToString()
+      val movieList: List<Movie> = Json.decodeFromString(jsonString)
+      value = UiState.Success(movieList)
+    }
+
+  val queriedMovies: UiState<List<Movie>> =
+    remember(searchQuery, movies) {
+      if (searchQuery.isBlank()) {
+        movies
+      } else {
+        movies.map { movieList ->
+          movieList.filter { it.title.contains(searchQuery, ignoreCase = true) }
+        }
+      }
+    }
+
   Scaffold(
     topBar = {
       CenterAlignedTopAppBar(
@@ -82,8 +118,8 @@ fun MovieListScreen(
           ),
     ) {
       TextField(
-        value = uiState.searchQuery,
-        onValueChange = onSearchQueryChange,
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
         label = { Text(text = stringResource(Res.string.movie_list_search_label)) },
         trailingIcon = {
           Icon(
@@ -95,7 +131,7 @@ fun MovieListScreen(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
       )
 
-      when (uiState.movies) {
+      when (val currentQueriedMovies: UiState<List<Movie>> = queriedMovies) {
         UiState.Loading -> {
           Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
             CircularProgressIndicator()
@@ -109,7 +145,7 @@ fun MovieListScreen(
           ) {
             Text(text = stringResource(Res.string.movie_list_fetch_failure))
 
-            OutlinedButton(onClick = onRetryClick) {
+            OutlinedButton(onClick = { reproducer++ }) {
               Text(text = stringResource(Res.string.retry_button))
             }
           }
@@ -128,7 +164,7 @@ fun MovieListScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.weight(1f),
           ) {
-            items(uiState.movies.data, key = { it.id }) { movie ->
+            items(currentQueriedMovies.data, key = { it.id }) { movie ->
               MovieCell(
                 movie = movie,
                 onClick = { onMovieClick(movie.id) },
