@@ -1,21 +1,23 @@
-package com.necatisozer.mvvmshowcase.movielist
+package com.necatisozer.mvvmshowcase.ui.movielist
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.necatisozer.mvvmshowcase.data.Movie
 import com.necatisozer.mvvmshowcase.data.MovieRepository
-import com.necatisozer.mvvmshowcase.data.UiState
-import com.necatisozer.mvvmshowcase.data.map
+import com.necatisozer.mvvmshowcase.model.Movie
+import com.necatisozer.mvvmshowcase.ui.util.UiState
+import com.necatisozer.mvvmshowcase.ui.util.map
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MovieListViewModel(
@@ -25,8 +27,21 @@ class MovieListViewModel(
   private val searchQueryState: MutableStateFlow<String> =
     savedStateHandle.getMutableStateFlow(key = "searchQuery", initialValue = "")
 
-  private val moviesState: MutableStateFlow<UiState<List<Movie>>> =
-    MutableStateFlow(UiState.Loading)
+  private val retryTrigger = MutableStateFlow(0)
+
+  private val moviesState: StateFlow<UiState<List<Movie>>> =
+    retryTrigger
+      .flatMapLatest {
+        movieRepository.movies
+          .map<List<Movie>, UiState<List<Movie>>> { movies -> UiState.Success(movies) }
+          .onStart { emit(UiState.Loading) }
+          .catch { exception -> emit(UiState.Failure(exception)) }
+      }
+      .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = UiState.Loading,
+      )
 
   val uiState: StateFlow<MovieListUIState> =
     combine(searchQueryState, moviesState) { searchQuery, movies ->
@@ -35,7 +50,7 @@ class MovieListViewModel(
             movies
           } else {
             movies.map { movieList ->
-              movieList.filter { it.title.contains(searchQuery, ignoreCase = true) }
+              movieList.filter { it.name.contains(searchQuery, ignoreCase = true) }
             }
           }
         MovieListUIState(searchQuery = searchQuery, movies = queriedMovies)
@@ -46,29 +61,11 @@ class MovieListViewModel(
         initialValue = MovieListUIState(),
       )
 
-  init {
-    fetchAndUpdateMovies()
-  }
-
   fun onSearchQueryChange(query: String) {
     searchQueryState.update { query }
   }
 
   fun onRetry() {
-    fetchAndUpdateMovies()
-  }
-
-  private fun fetchAndUpdateMovies() {
-    viewModelScope.launch {
-      moviesState.update { UiState.Loading }
-      runCatching {
-          val movies = movieRepository.fetchMovies()
-          moviesState.update { UiState.Success(movies) }
-        }
-        .onFailure { exception ->
-          coroutineContext.ensureActive()
-          moviesState.update { UiState.Failure(exception) }
-        }
-    }
+    retryTrigger.update { it + 1 }
   }
 }

@@ -1,4 +1,4 @@
-package com.necatisozer.mvvmshowcase.icon
+package com.necatisozer.mvvmshowcase.ui.res
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

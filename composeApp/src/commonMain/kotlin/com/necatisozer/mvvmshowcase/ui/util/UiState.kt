@@ -1,4 +1,4 @@
-package com.necatisozer.mvvmshowcase.data
+package com.necatisozer.mvvmshowcase.ui.util
 
 sealed interface UiState<out T> {
   data object Loading : UiState<Nothing>

@@ -1,9 +1,9 @@
-package com.necatisozer.mvvmshowcase.moviedetail
+package com.necatisozer.mvvmshowcase.ui.moviedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.necatisozer.mvvmshowcase.data.MovieRepository
-import com.necatisozer.mvvmshowcase.data.UiState
+import com.necatisozer.mvvmshowcase.ui.util.UiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow

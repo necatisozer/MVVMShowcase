@@ -13,14 +13,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.necatisozer.mvvmshowcase.data.MovieRepository
-import com.necatisozer.mvvmshowcase.home.HomeScreen
-import com.necatisozer.mvvmshowcase.moviedetail.MovieDetailScreen
-import com.necatisozer.mvvmshowcase.moviedetail.MovieDetailUIState
-import com.necatisozer.mvvmshowcase.moviedetail.MovieDetailViewModel
-import com.necatisozer.mvvmshowcase.movielist.MovieListScreen
-import com.necatisozer.mvvmshowcase.movielist.MovieListUIState
-import com.necatisozer.mvvmshowcase.movielist.MovieListViewModel
+import com.necatisozer.mvvmshowcase.di.AppModule
+import com.necatisozer.mvvmshowcase.ui.home.HomeScreen
+import com.necatisozer.mvvmshowcase.ui.moviedetail.MovieDetailScreen
+import com.necatisozer.mvvmshowcase.ui.moviedetail.MovieDetailUIState
+import com.necatisozer.mvvmshowcase.ui.moviedetail.MovieDetailViewModel
+import com.necatisozer.mvvmshowcase.ui.movielist.MovieListScreen
+import com.necatisozer.mvvmshowcase.ui.movielist.MovieListUIState
+import com.necatisozer.mvvmshowcase.ui.movielist.MovieListViewModel
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -40,7 +40,7 @@ fun App() {
       composable<MovieListRoute> {
         val viewModel = viewModel {
           MovieListViewModel(
-            movieRepository = MovieRepository.instance,
+            movieRepository = AppModule.movieRepository,
             savedStateHandle = createSavedStateHandle(),
           )
         }
@@ -58,7 +58,7 @@ fun App() {
       composable<MovieDetailRoute> { navBackStackEntry ->
         val route: MovieDetailRoute = navBackStackEntry.toRoute()
         val viewModel = viewModel {
-          MovieDetailViewModel(movieId = route.movieId, movieRepository = MovieRepository.instance)
+          MovieDetailViewModel(movieId = route.movieId, movieRepository = AppModule.movieRepository)
         }
         val uiState: MovieDetailUIState by viewModel.uiState.collectAsStateWithLifecycle()
 

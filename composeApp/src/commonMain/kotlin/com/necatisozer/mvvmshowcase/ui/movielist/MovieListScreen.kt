@@ -1,4 +1,4 @@
-package com.necatisozer.mvvmshowcase.movielist
+package com.necatisozer.mvvmshowcase.ui.movielist
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,10 +32,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.necatisozer.mvvmshowcase.data.Movie
-import com.necatisozer.mvvmshowcase.data.UiState
-import com.necatisozer.mvvmshowcase.icon.ArrowBack
-import com.necatisozer.mvvmshowcase.icon.Search
+import com.necatisozer.mvvmshowcase.model.Movie
+import com.necatisozer.mvvmshowcase.ui.util.UiState
+import com.necatisozer.mvvmshowcase.ui.res.ArrowBack
+import com.necatisozer.mvvmshowcase.ui.res.Search
 import mvvmshowcase.composeapp.generated.resources.Res
 import mvvmshowcase.composeapp.generated.resources.back_icon_content_description
 import mvvmshowcase.composeapp.generated.resources.movie_list_fetch_failure
@@ -150,9 +150,9 @@ private fun MovieCell(movie: Movie, onClick: () -> Unit, modifier: Modifier = Mo
   ) {
     AsyncImage(
       model = movie.posterUrl,
-      contentDescription = movie.title,
+      contentDescription = movie.name,
       modifier = Modifier.fillMaxWidth().aspectRatio(2 / 3f).clip(MaterialTheme.shapes.medium),
     )
-    Text(movie.title, textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
+    Text(movie.name, textAlign = TextAlign.Center, style = MaterialTheme.typography.titleSmall)
   }
 }

@@ -1,4 +1,4 @@
-package com.necatisozer.mvvmshowcase.moviedetail
+package com.necatisozer.mvvmshowcase.ui.moviedetail
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.necatisozer.mvvmshowcase.data.Movie
-import com.necatisozer.mvvmshowcase.data.UiState
-import com.necatisozer.mvvmshowcase.data.getOrNull
-import com.necatisozer.mvvmshowcase.icon.ArrowBack
+import com.necatisozer.mvvmshowcase.model.Movie
+import com.necatisozer.mvvmshowcase.ui.util.UiState
+import com.necatisozer.mvvmshowcase.ui.util.getOrNull
+import com.necatisozer.mvvmshowcase.ui.res.ArrowBack
 import mvvmshowcase.composeapp.generated.resources.Res
 import mvvmshowcase.composeapp.generated.resources.back_icon_content_description
 import mvvmshowcase.composeapp.generated.resources.movie_detail_fetch_failure
@@ -46,7 +46,7 @@ fun MovieDetailScreen(
   Scaffold(
     topBar = {
       CenterAlignedTopAppBar(
-        title = { Text(text = uiState.movieState.getOrNull()?.title.orEmpty()) },
+        title = { Text(text = uiState.movieState.getOrNull()?.name.orEmpty()) },
         navigationIcon = {
           IconButton(onClick = onBackClick) {
             Icon(
@@ -92,7 +92,7 @@ fun MovieDetailScreen(
         ) {
           AsyncImage(
             model = movie.backdropUrl,
-            contentDescription = movie.title,
+            contentDescription = movie.name,
             modifier =
               Modifier.widthIn(max = 550.dp)
                 .fillMaxWidth()
