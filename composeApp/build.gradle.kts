@@ -73,6 +73,9 @@ kotlin {
       implementation(libs.kotlinx.serialization.json)
       implementation(libs.coil.compose)
       implementation(libs.coil.network.ktor)
+      implementation(libs.ktor.client.core)
+      implementation(libs.ktor.client.contentNegotiation)
+      implementation(libs.ktor.serialization.kotlinx.json)
     }
     commonTest.dependencies { implementation(libs.kotlin.test) }
     desktopMain.dependencies {
