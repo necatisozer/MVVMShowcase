@@ -5,6 +5,8 @@ import com.necatisozer.mvvmshowcase.data.remote.MovieRemoteDataSource
 import com.necatisozer.mvvmshowcase.model.Movie
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -20,14 +22,17 @@ class MovieRepository(
   suspend fun getMovie(movieId: String): Movie = movieLocalDataSource.getMovieById(movieId)
 
   private var latestSyncTime = Instant.DISTANT_PAST
+  private val syncMutex = Mutex()
 
   private suspend fun syncMoviesIfNecessary() {
-    val isOutdated: Boolean = (Clock.System.now() - latestSyncTime) > 10.seconds
+    syncMutex.withLock {
+      val isOutdated: Boolean = (Clock.System.now() - latestSyncTime) > 10.seconds
 
-    if (isOutdated) {
-      val remoteMovies: List<Movie> = movieRemoteDataSource.getMovies()
-      movieLocalDataSource.saveMovies(remoteMovies)
-      latestSyncTime = Clock.System.now()
+      if (isOutdated) {
+        val remoteMovies: List<Movie> = movieRemoteDataSource.getMovies()
+        movieLocalDataSource.saveMovies(remoteMovies)
+        latestSyncTime = Clock.System.now()
+      }
     }
   }
 }
